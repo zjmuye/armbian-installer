@@ -10,6 +10,7 @@
 - 如何让openwrt/armbian 等小众x86-64的Linux系统 像安装普通系统一样简单呢 希望本项目给你一个满意的答案。
 
 ## 使用方式
+[图文教学](https://club.fnnas.com/forum.php?mod=viewthread&tid=26293)
 1. 虚拟机使用：各种虚拟机直接选择iso即可
 2. 物理机使用：建议将iso放入ventoy的U盘中
 3. https://www.ventoy.net/cn/download.html
