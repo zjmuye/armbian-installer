@@ -67,6 +67,5 @@ docker run --privileged --rm \
     -v $(pwd)/output:/output \
     -v $(pwd)/supportFiles:/supportFiles:ro \
     -v $(pwd)/imm/custom.img:/mnt/custom.img \
-    -v $(pwd)/entrypoint.sh:/entrypoint.sh:ro \
     debian:buster \
-    bash /entrypoint.sh
+    /supportFiles/custom/build.sh
