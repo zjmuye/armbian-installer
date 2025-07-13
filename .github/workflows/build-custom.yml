@@ -21,6 +21,7 @@ jobs:
         run: |
           chmod +x "${{ github.workspace }}/custom.sh"
           chmod +x "${{ github.workspace }}/supportFiles/custom/build.sh"
+          chmod +x "${{ github.workspace }}/entrypoint.sh"
 
       - name: Validate Download URL
         run: |
