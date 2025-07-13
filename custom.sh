@@ -67,5 +67,5 @@ docker run --privileged --rm \
         -v $(pwd)/output:/output \
         -v $(pwd)/supportFiles:/supportFiles:ro \
         -v $(pwd)/imm/custom.img:/mnt/custom.img \
-        debian:buster \
+        debian:bullseye \
         /supportFiles/custom/build.sh
