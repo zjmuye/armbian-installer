@@ -1,9 +1,9 @@
 #!/bin/bash
 mkdir -p openwrt
 
-REPO="wukongdaily/armbian-installer"
+REPO="wukongdaily/img-installer"
 TAG="2025-03-12"
-FILE_NAME="istoreos-22.03.7-2025040711-x86-64-squashfs-combined-efi.img.gz"
+FILE_NAME="istoreos-24.10.1-2025060614-x86-64-squashfs-combined-efi.img.gz"
 OUTPUT_PATH="openwrt/istoreos.img.gz"
 DOWNLOAD_URL=$(curl -s https://api.github.com/repos/$REPO/releases/tags/$TAG | jq -r '.assets[] | select(.name == "'"$FILE_NAME"'") | .browser_download_url')
 
