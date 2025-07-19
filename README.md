@@ -1,4 +1,4 @@
-# armbian-installer
+# img-installer
 它是一个基于Debian Live系统的img镜像安装器。采用github action构建打包。目前实现了在x86-64设备上 快速安装armbian和openwrt的功能。 
 ![1](https://github.com/user-attachments/assets/6635cb83-6164-4be7-ab1e-fff421b3dc2f)
 
@@ -10,6 +10,7 @@
 - 如何让openwrt/armbian 等小众x86-64的Linux系统 像安装普通系统一样简单呢 希望本项目给你一个满意的答案。
 
 ## 使用方式
+[图文教学](https://club.fnnas.com/forum.php?mod=viewthread&tid=26293)
 1. 虚拟机使用：各种虚拟机直接选择iso即可
 2. 物理机使用：建议将iso放入ventoy的U盘中
 3. https://www.ventoy.net/cn/download.html
@@ -51,5 +52,8 @@
 
 [![Star History Chart](https://api.star-history.com/svg?repos=wukongdaily/armbian-installer&type=Date)](https://star-history.com/#wukongdaily/armbian-installer&Date)
 
-### DONATE&支持本项目⬆️
-[助力按钮](https://wkdaily.cpolar.top/01)
+
+
+## ❤️赞助作者 ⬇️⬇️
+#### 项目开发不易 感谢您的支持鼓励。<br>
+[![点击这里赞助我](https://img.shields.io/badge/点击这里赞助我-支持作者的项目-orange?logo=github)](https://wkdaily.cpolar.cn/01) <br>
