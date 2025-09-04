@@ -1,155 +1,53 @@
-# 此工作流是为了构建一个immortalwrt固件的安装器 格式为iso 可用于所有的虚拟机 和 物理机
-# 所谓安装器就是用来安装用的 iso引导的是一个启动速度极快的debian live系统 跑码后输入命令 ddd 即可调出安装菜单
-# 安装时 若是多张硬盘 你可以选择 需要安装的硬盘 此类方法安装的openwrt 安装后是有剩余空间的 更多信息请参考 wukongdaily/img-installer 项目
-# 几乎所有linux 都有各自的安装器 唯独openwrt和armbian 没有, 希望此工作流 弥补这个遗憾 让你更优雅的 安装openwrt 
-
-name: build ISO
+name: "Build Custom OpenWrt Installer ISO"
 
 on:
   workflow_dispatch:
     inputs:
-      profile:
-        description: '请输入要编译固件大小 单位(MB)'
-        required: true
-        default: '2048'
-      include_docker:
-        description: "是否编译 Docker 插件"
-        required: true
-        default: 'no'
-        type: choice
-        options:
-          - 'yes'
-          - 'no'
-      enable_store:
-        description: "集成 store 商店"
-        required: false
-        type: boolean
-        default: true
-      enable_pppoe:
-        description: "是否配置PPPoE拨号信息?"
-        required: true
-        default: 'no'
-        type: choice
-        options:
-          - 'yes'
-          - 'no'
-      pppoe_account:
-        description: "宽带账号 (若启用PPPoE)"
-        required: false
-      pppoe_password:
-        description: "宽带密码 (若启用PPPoE)"
-        required: false
       download_url:
-        description: "可选：已有固件下载地址(.img.gz/.img.xz/.img.zip)，填写则跳过编译"
-        required: false
-        default: ''
+        description: '请输入下载地址(扩展名 .img.gz/.img.xz/.img.zip)'
+        required: true
+        default: 'https://default.example.com/file.img.gz'
 
 jobs:
-  build_immortalwrt:
-    if: ${{ github.event.inputs.download_url == '' }}  #有下载地址则跳过构建
-    runs-on: ubuntu-22.04
+  build-release:
+    name: "Build and Release"
+    runs-on: "ubuntu-22.04"
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: "Checking out git repository"
+        uses: actions/checkout@v2
 
       - name: Set executable permissions
-        run: chmod +x ${{ github.workspace }}/x86-64/build24.sh
-
-      - name: Enable Store integration
         run: |
-          if [ "${{ github.event.inputs.enable_store }}" == "true" ]; then
-            echo 'CUSTOM_PACKAGES="$CUSTOM_PACKAGES luci-app-store"' >> shell/custom-packages.sh
-            echo "✅ 已追加 luci-app-store"
-          else
-            echo "❎ 未启用 luci-app-store"
-          fi
+          chmod +x "${{ github.workspace }}/custom.sh"
+          chmod +x "${{ github.workspace }}/supportFiles/custom/build.sh"
 
-      - name: Validate PPPoE Inputs
+      - name: Validate Download URL
         run: |
-          if [[ "${{ github.event.inputs.enable_pppoe }}" == "yes" ]]; then
-            if [[ -z "${{ github.event.inputs.pppoe_account }}" || -z "${{ github.event.inputs.pppoe_password }}" ]]; then
-              echo "Error: PPPoE account and password must be provided when PPPoE is enabled!"
-              exit 1
-            fi
-          fi
-
-      - name: ✅ 正在构建ImmortalWrt固件
-        run: |
-          profiles="${{ github.event.inputs.profile }}"
-          include_docker="${{ github.event.inputs.include_docker }}"
-          IFS=',' read -r -a profile_array <<< "$profiles"
+          DEFAULT_URL="https://default.example.com/file.img.gz"
+          USER_INPUT_URL="${{ github.event.inputs.download_url }}"
           
-          for profile in "${profile_array[@]}"; do
-            echo "Building for profile: $profile"
-            docker run --rm -i \
-              --user root \
-              -v "${{ github.workspace }}/bin:/home/build/immortalwrt/bin" \
-              -v "${{ github.workspace }}/files:/home/build/immortalwrt/files" \
-              -v "${{ github.workspace }}/x86-64/imm.config:/home/build/immortalwrt/.config" \
-              -v "${{ github.workspace }}/shell:/home/build/immortalwrt/shell" \
-              -v "${{ github.workspace }}/x86-64/build24.sh:/home/build/immortalwrt/build.sh" \
-              -e PROFILE=$profile \
-              -e INCLUDE_DOCKER=$include_docker \
-              -e ENABLE_PPPOE=${{ inputs.enable_pppoe }} \
-              -e PPPOE_ACCOUNT=${{ inputs.pppoe_account }} \
-              -e PPPOE_PASSWORD=${{ inputs.pppoe_password }} \
-              immortalwrt/imagebuilder:x86-64-openwrt-24.10.2 /bin/bash /home/build/immortalwrt/build.sh
-          done
-
-      - name: ✅ 复制固件到根目录
-        run: |
-          cp ${{ github.workspace }}/bin/targets/x86/64/*squashfs-combined-efi.img.gz ${{ github.workspace }}
-
-      - name: ✅ 上传固件到 artifact (for ISO generation)
-        uses: actions/upload-artifact@v4
-        with:
-          name: firmware-img
-          path: |
-            *.img.gz
-
-  build_installer_iso:
-    runs-on: ubuntu-22.04
-    needs: build_immortalwrt
-
-    steps:
-      - name: 下载用户提供的固件
-        if: ${{ github.event.inputs.download_url != '' }}
-        run: |
-          echo "⏬ 下载用户提供的固件..."
-          url="${{ github.event.inputs.download_url }}"
-          if [[ ! "$url" =~ ^https?://.+\.(img\.gz|img\.xz|img\.zip)$ ]]; then
-            echo "❌ 错误：下载地址必须以 .img.gz/.img.xz/.img.zip 结尾"
+          if [[ "$USER_INPUT_URL" == "$DEFAULT_URL" ]]; then
+            echo "❌ 错误：请修改默认下载地址！当前地址为无效占位符。"
             exit 1
           fi
-          curl -L "$url" -o firmware.img
+          
+          if [[ ! "$USER_INPUT_URL" =~ ^https?://.+\.[gG][zZ]$|^https?://.+\.[xX][zZ]$|^https?://.+\.[zZ][iI][pP]$ ]]; then
+            echo "❌ 错误：地址需以 http(s) 开头且扩展名为 .gz/.xz/.zip"
+            echo "当前输入：$USER_INPUT_URL"
+            exit 1
+          fi
 
-      - name: 使用构建产物
-        if: ${{ github.event.inputs.download_url == '' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: firmware-img
-          path: .
-
-      - name: ⏬ 同步 img-installer 项目 准备制作ISO
-        run: git clone https://github.com/wukongdaily/img-installer.git
-
-      - name: Set executable permissions for scripts
+      - name: "Build Image"
         run: |
-          chmod +x "${{ github.workspace }}/img-installer/custom.sh"
-          chmod +x "${{ github.workspace }}/img-installer/supportFiles/custom/build.sh"
-          chmod +x "${{ github.workspace }}/img-installer/autobuild.sh"
+          download_url="${{ github.event.inputs.download_url }}"
+          ./custom.sh "$download_url"
 
-      - name: ✅ 制作 ISO
-        run: |
-          cd "${{ github.workspace }}/img-installer"
-          bash autobuild/autobuild.sh "../firmware.img"
-
-      - name: 🚀 上传 ISO 到 Release
+      - name: "Publish"
         uses: softprops/action-gh-release@v2.2.1
         with:
           tag_name: "Custom-Installer-x86_64-ISO"
-          body_path: "${{ github.workspace }}/img-installer/autobuild/info.md"
+          body_path: "${{ github.workspace }}/supportFiles/custom/info.md"
           files: |
-            img-installer/output/custom-installer-x86_64.iso
+            output/custom-installer-x86_64.iso
           token: "${{ secrets.GITHUB_TOKEN }}"
